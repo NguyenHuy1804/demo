@@ -3,60 +3,75 @@
 
 using namespace std;
 
-const int INF = 1e9; // Giá trị vô cực
+const int INF = 1e9; // Giá trị vô cực để đại diện cho không thể đi đến
 
-int dx[4] = { -1, 1, 0, 0 }; // Lên, xuống
-int dy[4] = { 0, 0, -1, 1 }; // Trái, phải
+// Mảng hướng đi: Lên, Xuống, Trái, Phải
+int dx[4] = { -1, 1, 0, 0 };
+int dy[4] = { 0, 0, -1, 1 };
 
-vector<vector<int>> memo;
-vector<vector<bool>> visited; // Mảng đánh dấu ô đã đi qua
-int N;
+vector<vector<int>> memo;       // Bảng nhớ lưu khoảng cách ngắn nhất đến mỗi ô
+vector<vector<bool>> visited;   // Đánh dấu các ô đã đi qua
+int N;                          // Kích thước mê cung
 
-// Kiểm tra ô hợp lệ
+// Kiểm tra xem ô (x, y) có hợp lệ để đi vào không
 bool isValid(int x, int y, vector<vector<int>>& maze) {
-    return x >= 0 && x < N && y >= 0 && y < N && maze[x][y] == 0 && !visited[x][y];
+    return (x >= 0 && x < N && y >= 0 && y < N) // Không vượt biên
+        && (maze[x][y] == 0)                    // Không phải chướng ngại vật
+        && (!visited[x][y]);                    // Chưa được đi qua
 }
 
-// Hàm đệ quy tìm đường đi ngắn nhất
+// Đệ quy tìm đường đi ngắn nhất từ (x, y) đến (N-1, N-1)
 int findShortestPath(vector<vector<int>>& maze, int x, int y, int steps) {
-    if (!isValid(x, y, maze)) return INF; // Nếu đi vào ô không hợp lệ
+    // Nếu đi vào ô không hợp lệ, trả về INF
+    if (!isValid(x, y, maze)) return INF;
 
-    if (x == N - 1 && y == N - 1) return steps; // Nếu đến đích
+    // Nếu đã đến đích, trả về số bước hiện tại
+    if (x == N - 1 && y == N - 1) return steps;
 
-    if (memo[x][y] != INF && memo[x][y] <= steps) return memo[x][y]; // Nếu đã có kết quả tốt hơn
+    // Nếu đã có kết quả tối ưu hơn, không cần tiếp tục
+    if (memo[x][y] <= steps) return memo[x][y];
 
-    visited[x][y] = true; // Đánh dấu đã đi qua
+    // Đánh dấu đã đi qua ô này
+    visited[x][y] = true;
+    memo[x][y] = steps; // Lưu số bước tại ô này
 
-    int minPath = INF;
+    int minPath = INF; // Biến lưu giá trị nhỏ nhất tìm được
+
+    // Thử đi 4 hướng: Lên, Xuống, Trái, Phải
     for (int i = 0; i < 4; i++) {
         int newX = x + dx[i];
         int newY = y + dy[i];
         minPath = min(minPath, findShortestPath(maze, newX, newY, steps + 1));
     }
 
-    visited[x][y] = false; // Bỏ đánh dấu để thử nhánh khác
+    // Bỏ đánh dấu để cho phép thử các đường đi khác
+    visited[x][y] = false;
 
-    memo[x][y] = minPath; // Lưu kết quả tối ưu
     return minPath;
 }
 
 int main() {
+    // Nhập kích thước mê cung
     cout << "Nhap kich thuoc me cung N: ";
     cin >> N;
 
+    // Khởi tạo mê cung
     vector<vector<int>> maze(N, vector<int>(N));
     cout << "Nhap me cung (0: trong, 1: chuong ngai vat):\n";
     for (int i = 0; i < N; i++)
         for (int j = 0; j < N; j++)
             cin >> maze[i][j];
 
-    memo.assign(N, vector<int>(N, INF)); // Khởi tạo memo
-    visited.assign(N, vector<bool>(N, false)); // Khởi tạo mảng visited
+    // Khởi tạo bảng nhớ và mảng đánh dấu
+    memo.assign(N, vector<int>(N, INF));
+    visited.assign(N, vector<bool>(N, false));
 
+    // Tìm đường đi ngắn nhất
     int result = findShortestPath(maze, 0, 0, 0);
 
+    // Xuất kết quả
     if (result == INF)
-        cout << "Khong co duong di!" << endl;
+        cout << "Khong co duong di" << endl;
     else
         cout << "Do dai duong di ngan nhat: " << result << endl;
 
